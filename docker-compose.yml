@@ -1,0 +1,44 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: tmdb_pg
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-tmdb}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-tmdb}
+      POSTGRES_DB: ${DB_NAME:-tmdb}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+
+  adminer:
+    image: adminer:4
+    container_name: tmdb_adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+
+  etl:
+    build: ./etl
+    container_name: tmdb_etl
+    environment:
+      TMDB_TOKEN: ${TMDB_TOKEN}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-tmdb}
+      DB_USER: ${DB_USER:-tmdb}
+      DB_PASSWORD: ${DB_PASSWORD:-tmdb}
+      MAX_PAGES: ${MAX_PAGES:-3}       # 20 résultats/page
+      SLEEP_BETWEEN_REQ_MS: ${SLEEP_BETWEEN_REQ_MS:-250}
+    depends_on:
+      - postgres
+    command: ["python", "-m", "src.load_movies"]
+
+volumes:
+  pgdata:
