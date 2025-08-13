@@ -3,69 +3,72 @@ import pandas as pd
 import streamlit as st
 from sqlalchemy import create_engine, text
 
+# --- Connexion DB (via variables d'env docker-compose) ---
 DB_HOST = os.getenv("DB_HOST", "postgres")
 DB_PORT = int(os.getenv("DB_PORT", "5432"))
 DB_NAME = os.getenv("DB_NAME", "tmdb")
 DB_USER = os.getenv("DB_USER", "tmdb")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "tmdb")
-
 ENGINE = create_engine(f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}")
 
-st.set_page_config(page_title="TMDB Analytics", layout="wide")
+st.set_page_config(page_title="TMDB - Dashboard simple", layout="wide")
+st.title("🎬 TMDB – Dashboard (simple)")
 
-@st.cache_data(ttl=300)
-def load_df(sql: str, params: dict | None = None) -> pd.DataFrame:
+@st.cache_data(ttl=60)
+def q(sql: str) -> pd.DataFrame:
     with ENGINE.begin() as conn:
-        return pd.read_sql(text(sql), conn, params=params)
+        return pd.read_sql(text(sql), conn)
 
-st.title("TMDB Analytics")
-
-# --- KPIs ---
-kpi_movies = load_df("SELECT COUNT(*) AS n FROM dim_movie").iloc[0]["n"]
-kpi_snapshots = load_df("SELECT COUNT(*) AS n FROM fact_movie_daily").iloc[0]["n"]
-col1, col2 = st.columns(2)
-col1.metric("Films ingérés", int(kpi_movies))
-col2.metric("Snapshots (fait journalier)", int(kpi_snapshots))
-
-st.divider()
-
-# --- Popularité par genre ---
-st.subheader("Popularité moyenne par genre (dernier snapshot)")
-df_genre = load_df("""
-SELECT name, avg_popularity, total_votes, nb_movies
-FROM vw_genre_popularity
-ORDER BY avg_popularity DESC
-""")
-st.dataframe(df_genre, use_container_width=True)
-st.bar_chart(df_genre.set_index("name")["avg_popularity"])
+# ========== Analyse 1 : KPIs ==========
+st.subheader("1) Indicateurs clés")
+try:
+    n_films = int(q("SELECT COUNT(*) AS n FROM dim_movie").iloc[0]["n"])
+    latest = q("SELECT vote_average, vote_count FROM vw_movie_latest")
+    note_moy = float(latest["vote_average"].dropna().mean()) if not latest.empty else 0.0
+    votes_tot = int(latest["vote_count"].dropna().sum()) if not latest.empty else 0
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Films ingérés", n_films)
+    c2.metric("Note moyenne (dernier snapshot)", f"{note_moy:.2f}")
+    c3.metric("Total votes (dernier snapshot)", f"{votes_tot:,}".replace(",", " "))
+except Exception as e:
+    st.error(f"Erreur KPIs : {e}")
 
 st.divider()
 
-# --- Top films ---
-st.subheader("Top films (dernier snapshot)")
-df_top = load_df("SELECT * FROM vw_top_movies")
-search = st.text_input("Filtrer par titre contient...", "")
-min_votes = st.slider("Votes min", 0, int(df_top["vote_count"].max() or 0), 0)
-if search:
-    df_top = df_top[df_top["title"].str.contains(search, case=False, na=False)]
-df_top = df_top[df_top["vote_count"] >= min_votes]
-st.dataframe(df_top.head(100), use_container_width=True)
-
-# --- Série temporelle pour un film ---
-st.subheader("Évolution de la popularité (par film)")
-if not df_top.empty:
-    choices = df_top.sort_values(["popularity"], ascending=False)[["movie_id","title"]]
-    label_map = {f'{r["title"]} [{r["movie_id"]}]': int(r["movie_id"]) for _, r in choices.iterrows()}
-    selected_label = st.selectbox("Choisir un film", list(label_map.keys()))
-    movie_id = label_map[selected_label]
-    ts = load_df("""
-        SELECT date_id::date AS date, popularity, vote_average, vote_count
-        FROM fact_movie_daily
-        WHERE movie_id = :mid
-        ORDER BY date
-    """, {"mid": movie_id})
-    if ts.empty:
-        st.info("Pas assez de snapshots pour tracer une série (relance l’ETL à J+1).")
+# ========== Analyse 2 : Popularité par genre ==========
+st.subheader("2) Popularité moyenne par genre (Top 10)")
+try:
+    genre = q("""
+        SELECT name, avg_popularity, total_votes, nb_movies
+        FROM vw_genre_popularity
+        ORDER BY avg_popularity DESC
+        LIMIT 10
+    """)
+    if genre.empty:
+        st.info("Aucune donnée de genre. Lance l’ETL puis rafraîchis la page.")
     else:
-        st.line_chart(ts.set_index("date")[["popularity"]])
-        st.dataframe(ts, use_container_width=True)
+        st.bar_chart(genre.set_index("name")["avg_popularity"])
+        st.caption("Astuce : passe ta souris pour voir la valeur exacte.")
+        st.dataframe(genre, use_container_width=True)
+except Exception as e:
+    st.error(f"Erreur popularité par genre : {e}")
+
+st.divider()
+
+# ========== Analyse 3 : Top films ==========
+st.subheader("3) Top films (dernier snapshot)")
+try:
+    top_n = st.slider("Nombre de films à afficher", 5, 50, 20, 5)
+    top = q(f"""
+        SELECT title, popularity, vote_average, vote_count
+        FROM vw_top_movies
+        ORDER BY popularity DESC, vote_average DESC, vote_count DESC
+        LIMIT {int(top_n)}
+    """)
+    if top.empty:
+        st.info("Aucune donnée de film. Lance l’ETL puis rafraîchis la page.")
+    else:
+        st.bar_chart(top.set_index("title")["popularity"])
+        st.dataframe(top, use_container_width=True)
+except Exception as e:
+    st.error(f"Erreur top films : {e}")
