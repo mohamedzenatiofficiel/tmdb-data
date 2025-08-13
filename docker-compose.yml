@@ -44,9 +44,6 @@ services:
     command: ["python", "-m", "src.load_movies"]
     profiles: ["etl"]
 
-volumes:
-  pgdata:
-
 
   viz:
     build: ./viz
@@ -61,3 +58,9 @@ volumes:
       - postgres
     ports:
       - "8501:8501"
+
+
+
+volumes:
+  pgdata:
+
