@@ -1,0 +1,49 @@
+# ---- Python ----
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pytest_cache/
+*.coverage
+.pytest_cache/
+.mypy_cache/
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+*.log
+
+# ---- Jupyter ----
+.ipynb_checkpoints/
+
+# ---- Environnements / Secrets ----
+.env
+etl/.env
+*.env.local
+*.env.development
+*.env.production
+
+# ---- Docker ----
+*.pid
+**/tmp/
+**/cache/
+**/.dockerignore
+
+# ---- PostgreSQL ----
+pgdata/
+*.sql~
+
+# ---- IDE ----
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
+
+# ---- Autres fichiers temporaires ----
+*.swp
+*.swo
