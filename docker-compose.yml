@@ -46,3 +46,18 @@ services:
 
 volumes:
   pgdata:
+
+
+  viz:
+    build: ./viz
+    container_name: tmdb_viz
+    environment:
+      DB_HOST: ${DB_HOST:-postgres}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_NAME: ${DB_NAME:-tmdb}
+      DB_USER: ${DB_USER:-tmdb}
+      DB_PASSWORD: ${DB_PASSWORD:-tmdb}
+    depends_on:
+      - postgres
+    ports:
+      - "8501:8501"
