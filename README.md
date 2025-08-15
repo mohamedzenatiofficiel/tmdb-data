@@ -54,7 +54,7 @@ Dans pgAdmin : Servers → clic droit → Create → Server…
 
 onglet General
 
-Name : TMDB
+Name : tmdb
 
 onglet Connection
 
