@@ -7,3 +7,6 @@ CREATE INDEX IF NOT EXISTS ix_bridge_movie_genre_genre ON bridge_movie_genre (ge
 
 CREATE INDEX IF NOT EXISTS ix_fact_movie_daily_latest ON fact_movie_daily (movie_id, date_id DESC);
 
+
+CREATE INDEX IF NOT EXISTS ix_dim_country_continent ON dim_country (continent);
+
