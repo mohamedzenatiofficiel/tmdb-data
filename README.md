@@ -1,16 +1,37 @@
 # TMDB Data Pipeline
 
 ## Démarrage rapide
+### Option A — Tout démarrer d’un coup (recommandé)
 ```bash
-# 1) config
-cp .env   # puis colle ton TMDB_TOKEN (Bearer v4)
-# 2) base + pgAdmin
+# lance Postgres + pgAdmin + Viz + ETL (one-shot)
+docker compose --profile etl up -d
+```
+### Vérifier que l’ETL a bien tourné :
+```bash
+docker compose logs etl --tail 200
+```
+
+
+### Option B — Si la commande ci-dessus ne marche pas, lancer étape par étape
+```bash
+# 1) Base + UI
 docker compose up -d postgres pgadmin
-# 3) ETL (1er run)
+
+# 2) ETL (1er run — charge les données)
 docker compose run --rm etl python -m src.load_movies
-# 4) Viz
+
+# 3) Viz (dashboard)
 docker compose up -d viz
 ```
+
+
+## Accès UIs
+
+pgAdmin : http://localhost:5050
+
+Viz : http://localhost:8501
+
+
 
 ## Accès pgAdmin & connexion au serveur Postgres
 ```bash
@@ -44,3 +65,11 @@ Maintenance database : tmdb
 Username : tmdb
 
 Password : tmdb (cocher “Save password”)
+```
+
+## Arrêter les services
+```bash
+# arrêter ET effacer les volumes (DB remise à zéro)
+docker compose down -v --remove-orphans
+```
+
