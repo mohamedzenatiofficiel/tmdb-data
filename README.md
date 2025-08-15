@@ -54,7 +54,7 @@ Dans pgAdmin : Servers → clic droit → Create → Server…
 
 onglet General
 
-Name : TMDB
+Name : tmdb
 
 onglet Connection
 
@@ -68,6 +68,11 @@ Username : tmdb
 
 Password : tmdb (cocher “Save password”)
 ```
+
+## Qualité de code
+- Tests : `docker compose run --rm etl pytest -q`
+- Lint :  `docker compose run --rm etl ruff check`
+
 
 ## Arrêter les services
 ```bash

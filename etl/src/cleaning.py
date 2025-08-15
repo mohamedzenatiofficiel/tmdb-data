@@ -1,6 +1,6 @@
 # etl/src/cleaning.py
 from datetime import date
-from typing import Iterable, Dict, Any, Iterator, Optional
+from typing import Dict, Any, Iterator, Optional
 
 
 def _none_if_empty(v: Any) -> Optional[Any]:
@@ -44,9 +44,11 @@ def iter_countries(d: Dict[str, Any]) -> Iterator[Dict[str, Any]]:
 
 
 def iter_languages(d: Dict[str, Any]) -> Iterator[Dict[str, Any]]:
-    for l in (d.get("spoken_languages") or []):
-        yield {"iso_639_1": l["iso_639_1"], "name": l.get("english_name") or l.get("name")}
-
+    for lang in (d.get("spoken_languages") or []):
+        yield {
+            "iso_639_1": lang["iso_639_1"],
+            "name": lang.get("english_name") or lang.get("name"),
+        }
 
 def iter_bridge_movie_genre(d: Dict[str, Any]) -> Iterator[Dict[str, Any]]:
     mid = d["id"]
@@ -68,9 +70,8 @@ def iter_bridge_movie_country(d: Dict[str, Any]) -> Iterator[Dict[str, Any]]:
 
 def iter_bridge_movie_language(d: Dict[str, Any]) -> Iterator[Dict[str, Any]]:
     mid = d["id"]
-    for l in (d.get("spoken_languages") or []):
-        yield {"movie_id": mid, "iso_639_1": l["iso_639_1"]}
-
+    for lang in (d.get("spoken_languages") or []):
+        yield {"movie_id": mid, "iso_639_1": lang["iso_639_1"]}
 
 def as_fact_daily(d: Dict[str, Any], snapshot: date) -> Dict[str, Any]:
     return {
