@@ -17,8 +17,10 @@ def main():
 
     details = []
     for mid in ids:
-        try: details.append(fetch_movie_details(mid))
-        except Exception as e: print(f"[WARN] Movie {mid}: {e}")
+        try:
+            details.append(fetch_movie_details(mid))
+        except Exception as e:
+            print(f"[WARN] Movie {mid}: {e}")
 
     dim_movie_rows = [as_dim_movie(d) for d in details]
     dim_genre_rows     = dedup([r for d in details for r in iter_genres(d)], ["genre_id"])
@@ -52,7 +54,9 @@ def dedup(rows: list[dict], keys: list[str]) -> list[dict]:
     seen, out = set(), []
     for r in rows:
         k = tuple(r[k] for k in keys)
-        if k not in seen: seen.add(k); out.append(r)
+        if k not in seen:
+            seen.add(k)
+            out.append(r)
     return out
 
 if __name__ == "__main__":
