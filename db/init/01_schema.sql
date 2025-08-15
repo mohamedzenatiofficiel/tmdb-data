@@ -19,7 +19,8 @@ CREATE TABLE IF NOT EXISTS dim_movie (
 
 CREATE TABLE IF NOT EXISTS dim_genre ( genre_id BIGINT PRIMARY KEY, name TEXT NOT NULL );
 CREATE TABLE IF NOT EXISTS dim_company ( company_id BIGINT PRIMARY KEY, name TEXT NOT NULL, origin_country TEXT );
-CREATE TABLE IF NOT EXISTS dim_country ( iso_3166_1 TEXT PRIMARY KEY, name TEXT );
+CREATE TABLE IF NOT EXISTS dim_country ( iso_3166_1 TEXT PRIMARY KEY, name TEXT, continent TEXT);
+COMMENT ON COLUMN dim_country.continent IS 'Continent simple (Europe, Asia, North America, South America, Africa, Oceania).';
 CREATE TABLE IF NOT EXISTS dim_language ( iso_639_1 TEXT PRIMARY KEY, name TEXT );
 
 CREATE TABLE IF NOT EXISTS bridge_movie_genre (

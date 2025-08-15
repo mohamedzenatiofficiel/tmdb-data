@@ -22,7 +22,10 @@ docker compose up -d postgres pgadmin
 # 2) ETL (1er run — charge les données)
 docker compose run --rm etl python -m src.load_movies
 
-# 3) Viz (dashboard)
+# 3) Enrichissement continent (depuis ./data/country_continent.csv)
+docker compose run --rm etl python -m src.load_country_continent
+
+# 4) Viz (dashboard)
 docker compose up -d viz
 ```
 

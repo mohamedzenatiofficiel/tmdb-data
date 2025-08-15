@@ -22,3 +22,23 @@ SELECT *
 FROM vw_movie_latest
 ORDER BY popularity DESC, vote_average DESC, vote_count DESC
 LIMIT 200;
+
+
+
+CREATE OR REPLACE VIEW vw_continent_popularity AS
+WITH latest AS (
+    SELECT * FROM vw_movie_latest
+)
+SELECT
+    c.continent,
+    AVG(l.popularity)            AS avg_popularity,
+    COUNT(DISTINCT l.movie_id)   AS n_movies,
+    SUM(l.vote_count)            AS total_votes
+FROM latest l
+JOIN bridge_movie_country b
+  ON b.movie_id = l.movie_id
+JOIN dim_country c
+  ON c.iso_3166_1 = b.iso_3166_1
+WHERE COALESCE(c.continent, '') <> ''
+GROUP BY c.continent
+ORDER BY avg_popularity DESC;

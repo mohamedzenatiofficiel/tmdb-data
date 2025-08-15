@@ -12,6 +12,11 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:                            # ✅ attend que Postgres soit prêt
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-tmdb} -d ${DB_NAME:-tmdb} || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
 
   pgadmin:
     image: dpage/pgadmin4:8
@@ -23,7 +28,8 @@ services:
     ports:
       - "5050:80"
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
   etl:
     build: ./etl
@@ -37,11 +43,15 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-tmdb}
       MAX_PAGES: ${MAX_PAGES:-1}
       SLEEP_BETWEEN_REQ_MS: ${SLEEP_BETWEEN_REQ_MS:-250}
+      COUNTRY_CSV: /app/data/country_continent.csv
     depends_on:
-      - postgres
-    command: ["python", "-m", "src.load_movies"]
+      postgres:
+        condition: service_healthy
+    # ✅ ETL API PUIS enrichissement CSV (stoppe si la 1ère étape échoue)
+    command: ["sh","-lc","set -e; python -m src.load_movies && python -m src.load_country_continent"]
     profiles: ["etl"]
-
+    volumes:
+      - ./data:/app/data:ro                # ✅ monte le CSV dans le conteneur
 
   viz:
     build: ./viz
@@ -53,12 +63,10 @@ services:
       DB_USER: ${DB_USER:-tmdb}
       DB_PASSWORD: ${DB_PASSWORD:-tmdb}
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     ports:
       - "8501:8501"
 
-
-
 volumes:
   pgdata:
-
