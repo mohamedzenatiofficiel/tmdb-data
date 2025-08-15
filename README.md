@@ -73,3 +73,27 @@ Password : tmdb (cocher “Save password”)
 docker compose down -v --remove-orphans
 ```
 
+
+
+
+## Structure du projet : 
+```bash
+.
+├─ db/
+│  └─ init/
+│     ├─ 01_schema.sql
+│     ├─ 02_views.sql
+│     └─ 03_indexes.sql
+├─ etl/
+│  ├─ Dockerfile
+│  ├─ requirements.txt
+│  └─ src/  (config.py, db.py, tmdb_client.py, cleaning.py, load_movies.py)
+├─ viz/
+│  ├─ Dockerfile
+│  ├─ requirements.txt
+│  └─ app.py
+├─ docker-compose.yml
+├─ .env.example
+└─ README.md
+
+```
