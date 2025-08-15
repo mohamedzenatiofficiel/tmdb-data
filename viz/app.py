@@ -93,3 +93,50 @@ try:
         st.dataframe(top, use_container_width=True)
 except Exception as e:
     st.error(f"Erreur top films : {e}")
+
+
+
+
+# --- Analyse : Popularité par continent (issu du CSV) ---
+st.subheader("🌍 Popularité moyenne par continent")
+
+q_cont = """
+SELECT continent, avg_popularity, n_movies, total_votes
+FROM vw_continent_popularity
+ORDER BY avg_popularity DESC
+"""
+df_cont = pd.read_sql(text(q_cont), ENGINE)
+
+if df_cont.empty:
+    st.info("Aucune donnée continent disponible. Lance d'abord le loader CSV : "
+            "`docker compose run --rm etl python -m src.load_country_continent`")
+else:
+    # Bar chart + détail
+    st.bar_chart(df_cont.set_index("continent")["avg_popularity"])
+    st.dataframe(df_cont, use_container_width=True)
+
+    # Drilldown : top films d'un continent
+    st.markdown("---")
+    st.subheader("🎬 Top 10 films par continent (dernier snapshot)")
+    selected_cont = st.selectbox("Choisir un continent", df_cont["continent"].tolist())
+    q_top_by_continent = """
+    WITH latest AS (SELECT * FROM vw_movie_latest)
+    SELECT
+        m.title,
+        l.popularity,
+        l.vote_average,
+        l.vote_count
+    FROM latest l
+    JOIN dim_movie m              ON m.movie_id = l.movie_id
+    JOIN bridge_movie_country b   ON b.movie_id = l.movie_id
+    JOIN dim_country c            ON c.iso_3166_1 = b.iso_3166_1
+    WHERE c.continent = :cont
+    GROUP BY m.title, l.popularity, l.vote_average, l.vote_count
+    ORDER BY l.popularity DESC, l.vote_average DESC, l.vote_count DESC
+    LIMIT 10
+    """
+    df_top = pd.read_sql(text(q_top_by_continent), ENGINE, params={"cont": selected_cont})
+    if df_top.empty:
+        st.warning(f"Aucun film trouvé pour {selected_cont}.")
+    else:
+        st.dataframe(df_top, use_container_width=True)
