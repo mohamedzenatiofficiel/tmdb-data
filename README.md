@@ -4,8 +4,10 @@
 ### Option A — Tout démarrer d’un coup (recommandé)
 ```bash
 # lance Postgres + pgAdmin + Viz + ETL (one-shot)
-docker compose --profile etl up -d
+docker compose --profile etl up -d postgres pgadmin viz etl
 ```
+(Il y a environ 2 minutes d'attentes avant que le processus ETL ne se termine)
+
 ### Vérifier que l’ETL a bien tourné :
 ```bash
 docker compose logs etl --tail 200
@@ -71,6 +73,8 @@ Password : tmdb (cocher “Save password”)
 ```bash
 # arrêter ET effacer les volumes (DB remise à zéro)
 docker compose down -v --remove-orphans
+docker compose rm -f etl
+docker network prune -f
 ```
 
 
