@@ -12,6 +12,27 @@ DB_PASSWORD = os.getenv("DB_PASSWORD", "tmdb")
 ENGINE = create_engine(f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}")
 
 st.set_page_config(page_title="TMDB - Dashboard simple", layout="wide")
+
+
+# --- fonction utilitaire pour tester la présence de données ---
+def has_data() -> bool:
+    try:
+        with ENGINE.begin() as conn:
+            n = pd.read_sql(text("SELECT COUNT(*) AS n FROM dim_movie"), conn).iloc[0]["n"]
+        return int(n) > 0
+    except Exception:
+        # DB pas prête ou requête échouée
+        return False
+
+# --- message d'attente si l'ETL n'a pas encore rempli la base ---
+if not has_data():
+    st.warning("⏳ Données en cours de chargement… L’ETL n’a pas encore alimenté la base.")
+    st.caption("Astuce : lance l’ETL puis rafraîchis cette page (F5) dans 15–30 sec.\n"
+               "Commande : `docker compose run --rm etl python -m src.load_movies`")
+    st.stop()  # on arrête le rendu du reste du dashboard jusqu’à ce qu’il y ait des données
+
+
+
 st.title("🎬 TMDB – Dashboard (simple)")
 
 @st.cache_data(ttl=60)
