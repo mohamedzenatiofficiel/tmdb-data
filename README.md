@@ -97,6 +97,7 @@ docker network prune -f
 │  ├─ requirements.txt
 │  └─ app.py
 ├─ docker-compose.yml
+├─ .env
 ├─ .env.example
 └─ README.md
 
