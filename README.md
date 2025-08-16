@@ -93,20 +93,39 @@ docker network prune -f
 .
 ├─ db/
 │  └─ init/
-│     ├─ 01_schema.sql
-│     ├─ 02_views.sql
-│     └─ 03_indexes.sql
+│     ├─ 01_schema.sql                 
+│     ├─ 02_views.sql                  
+│     └─ 03_indexes.sql               
+├─ data/
+│  └─ country_continent.csv            
 ├─ etl/
 │  ├─ Dockerfile
 │  ├─ requirements.txt
-│  └─ src/  (config.py, db.py, tmdb_client.py, cleaning.py, load_movies.py)
+│  ├─ src/
+│  │  ├─ __init__.py
+│  │  ├─ config.py
+│  │  ├─ db.py
+│  │  ├─ tmdb_client.py
+│  │  ├─ cleaning.py
+│  │  ├─ load_movies.py
+│  │  └─ load_country_continent.py
+│  └─ tests/
+│     ├─ __init__.py
+│     ├─ conftest.py
+│     ├─ test_cleaning.py
+│     └─ smoke_db.py
 ├─ viz/
 │  ├─ Dockerfile
 │  ├─ requirements.txt
-│  └─ app.py
+│  └─ app.py                           
+├─ .dockerignore
+├─ .gitignore
 ├─ docker-compose.yml
-├─ .env
+├─ pyproject.toml                       
+├─ .env                                 
 ├─ .env.example
-└─ README.md
+├─ README.md
+└─ REPORT.docx
+
 
 ```
