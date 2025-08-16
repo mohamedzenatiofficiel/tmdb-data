@@ -27,8 +27,6 @@ def has_data() -> bool:
 # --- message d'attente si l'ETL n'a pas encore rempli la base ---
 if not has_data():
     st.warning("⏳ Données en cours de chargement… L’ETL n’a pas encore alimenté la base.")
-    st.caption("Astuce : lance l’ETL puis rafraîchis cette page (F5) dans 15–30 sec.\n"
-               "Commande : `docker compose run --rm etl python -m src.load_movies`")
     st.stop()  # on arrête le rendu du reste du dashboard jusqu’à ce qu’il y ait des données
 
 
